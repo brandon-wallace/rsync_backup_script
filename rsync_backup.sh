@@ -19,7 +19,7 @@ else
     printf "%s\n" "MOUNTING BACKUP DRIVE..."
     mount -v $DESTINATION
     if [ "$(echo $?)" -eq 0 ]; then
-        printf "%s\n" "${TODAY},'ERROR! BACKUP DRIVE NOT ACCESSIBLE.'" >> backup_log.csv
+        printf "%s\n" "${TODAY},'ERROR! BACKUP DRIVE NOT ACCESSIBLE.'" >> $HOME/backup_log.csv
         exit 1
     fi
 fi
@@ -31,13 +31,13 @@ RSYNC_COPY="-a --stats --human-readable --progress --checksum --exclude={'__pyca
 
 START="$(date +%Hh:%Mm:%Ss)"
 
-printf "%s" "$TODAY,$START" >> backup_log.csv
+printf "%s" "$TODAY,$START" >> $HOME/backup_log.csv
 
 rsync $SSH_CMD $RSYNC_COPY $SOURCE $DESTINATION | { awk '/total size is/{print $4}' | read TOTAL_SIZE; }
 
 FINISH="$(date +%Hh:%Mm:%Ss)"
 
-printf "%s\n" ",$FINISH,$TOTAL_SIZE,$SOURCE,$DESTINATION" >> backup_log.csv
+printf "%s\n" ",$FINISH,$TOTAL_SIZE,$SOURCE,$DESTINATION" >> $HOME/backup_log.csv
 
 printf "%s\n" "BACKUP COMPLETE."
 

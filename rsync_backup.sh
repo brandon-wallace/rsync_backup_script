@@ -10,7 +10,7 @@ SOURCE=$HOME
 
 DESTINATION='/mnt/backup/'
 
-TODAY="$(date +%Y-%m-%d-%H%M%S)"
+TODAY="$(date +%Y-%m-%d_%H:%M:%S)"
 
 
 if [ -d $DESTINATION ]; then
@@ -27,17 +27,25 @@ fi
 
 printf "%s\n" "PERFORMING BACKUP. PLEASE WAIT..."
 
-RSYNC_COPY="-a --stats --human-readable --progress --checksum --exclude={'__pycache__/','.pytest_cache/','.venv/','node_modules/','*.pyc'} --log-file=backup_$(date +%Y-%m-%d-%H%M%S).log"
+RSYNC_COPY="-a --stats --human-readable --progress --checksum --exclude={'__pycache__/','.pytest_cache/','.venv/','node_modules/','*.pyc'} --log-file=backup_$(date +%Y-%m-%d_%H%M%S).log"
 
 START="$(date +%Hh:%Mm:%Ss)"
+
+BACKUP_START=$SECONDS
 
 printf "%s" "$TODAY,$START" >> $HOME/backup_log.csv
 
 rsync $SSH_CMD $RSYNC_COPY $SOURCE $DESTINATION | { awk '/total size is/{print $4}' | read TOTAL_SIZE; }
 
+BACKUP_FINISH=$SECONDS
+
+TOTAL_SECONDS="$((BACKUP_FINISH - BACKUP_START))"
+
+ELAPSED_TIME="$(($TOTAL_SECONDS / 3600))h:$(($TOTAL_SECONDS / 60))m:$(($TOTAL_SECONDS % 60))s"
+
 FINISH="$(date +%Hh:%Mm:%Ss)"
 
-printf "%s\n" ",$FINISH,$TOTAL_SIZE,$SOURCE,$DESTINATION" >> $HOME/backup_log.csv
+printf "%s\n" ",$FINISH,$ELAPSED_TIME,$TOTAL_SIZE,$SOURCE,$DESTINATION" >> $HOME/backup_log.csv
 
 printf "%s\n" "BACKUP COMPLETE."
 

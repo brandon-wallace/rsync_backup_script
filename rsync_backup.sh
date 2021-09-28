@@ -4,7 +4,7 @@ shopt -s lastpipe
 
 PORT=22
 
-SSH_CMD="ssh -v -p $PORT -i /home/$USER/.ssh/id_rsa"
+SSH_CMD="ssh -p $PORT -i /home/$USER/.ssh/id_rsa"
 
 SOURCE=$HOME
 
@@ -35,7 +35,7 @@ BACKUP_START=$SECONDS
 
 printf "%s" "$TODAY,$START" >> $HOME/backup_log.csv
 
-rsync $SSH_CMD $RSYNC_COPY $SOURCE $DESTINATION | { awk '/total size is/{print $4}' | read TOTAL_SIZE; }
+rsync -e $SSH_CMD $RSYNC_COPY $SOURCE $DESTINATION | { awk '/total size is/{print $4}' | read TOTAL_SIZE; }
 
 BACKUP_FINISH=$SECONDS
 

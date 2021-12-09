@@ -54,3 +54,9 @@ function run_backup() {
 
     printf "%s\n" "BACKUP COMPLETE."
 }
+
+
+if [ "$(cat today.tmp)" != "$(date +%d)" ]; then
+    run_backup
+    date +%d > today.tmp
+fi

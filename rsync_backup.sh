@@ -10,6 +10,8 @@ SOURCE=$HOME
 
 DESTINATION='/mnt/backup/'
 
+LOG_DIR=$HOME
+
 TODAY="$(date +%Y-%m-%d_%H:%M:%S)"
 
 
@@ -19,7 +21,7 @@ else
     printf "%s\n" "MOUNTING BACKUP DRIVE..."
     mount -v $DESTINATION
     if [ "$(echo $?)" -eq 0 ]; then
-        printf "%s\n" "${TODAY},'ERROR! BACKUP DRIVE NOT ACCESSIBLE.'" >> $HOME/backup_log.csv
+        printf "%s\n" "${TODAY},'ERROR! BACKUP DRIVE NOT ACCESSIBLE.'" >> $LOG_DIR/backup_log.csv
         exit 1
     fi
 fi
@@ -28,7 +30,7 @@ fi
 function run_backup() {
     printf "%s\n" "PERFORMING BACKUP. PLEASE WAIT..."
 
-    RSYNC_COPY="-a --stats --human-readable --progress --checksum --exclude={'__pycache__/','.pytest_cache/','.venv/','node_modules/','*.pyc'} --log-file=backup_$(date +%Y-%m-%d_%H%M%S).log"
+    RSYNC_COPY="-a --stats --human-readable --progress --checksum --exclude={'__pycache__/','.pytest_cache/','.venv/','node_modules/','*.pyc'} --log-file=${LOG_DIR}/backup_$(date +%Y-%m-%d_%H%M%S).log"
 
     START="$(date +%Hh:%Mm:%Ss)"
     
@@ -36,7 +38,7 @@ function run_backup() {
 
     BACKUP_START=$SECONDS
 
-    printf "%s" "$TODAY,$START" >> $HOME/backup_log.csv
+    printf "%s" "$TODAY,$START" >> $LOG_DIR/backup_log.csv
 
     rsync -e $SSH_CMD $RSYNC_COPY $SOURCE $DESTINATION | { awk '/total size is/{print $4}' | read TOTAL_SIZE; }
 
@@ -50,7 +52,7 @@ function run_backup() {
     
     logger "FINISHING BACKUP: $FINISH"
 
-    printf "%s\n" ",$FINISH,$ELAPSED_TIME,$TOTAL_SIZE,$SOURCE,$DESTINATION" >> $HOME/backup_log.csv
+    printf "%s\n" ",$FINISH,$ELAPSED_TIME,$TOTAL_SIZE,$SOURCE,$DESTINATION" >> $LOG_DIR/backup_log.csv
 
     printf "%s\n" "BACKUP COMPLETE."
 }
@@ -58,5 +60,7 @@ function run_backup() {
 
 if [ "$(cat today.tmp)" != "$(date +%d)" ]; then
     run_backup
-    date +%d > today.tmp
+    date +%d > $LOG_DIR/today.tmp
+else
+    printf "%s\n" "BACKUP ALREADY RUN."
 fi
